@@ -31,7 +31,13 @@ try:
     from utils.decrypt_epub import run as decrypt_run
     from utils.reformat_epub import run as reformat_run
     from utils.encrypt_font import run_epub_font_encrypt
-    from utils.transfer_img import run_epub_img_transfer
+    from utils.webp_to_img import run as run_webp_to_img
+    from utils.img_to_webp import run as run_img_to_webp
+    # 导入 PNG压缩 功能
+    from utils.webp_to_img import run as run_epub_img_transfer
+    from utils.font_subset import run_epub_font_subset
+    from utils.chinese_convert import run_s2t, run_t2s
+    from utils.regex_footnote import run as run_regex_footnote
 except ImportError:
 
     def mock_run(filepath, outdir, *args):
@@ -39,8 +45,8 @@ except ImportError:
         return 0
 
     encrypt_run = decrypt_run = reformat_run = run_epub_font_encrypt = (
-        run_epub_img_transfer
-    ) = mock_run
+        run_webp_to_img
+    ) = run_img_to_webp = run_epub_img_transfer = run_epub_font_subset = run_s2t = run_t2s = run_regex_footnote = mock_run
 
 
 class ModernEpubTool(BaseClass):
@@ -50,8 +56,8 @@ class ModernEpubTool(BaseClass):
         self.title("Epub Tool")
         self.geometry("980x700")
 
-        # 手动应用主题
-        self.style = Style(theme="flatly")
+        # 手动应用主题 (litera 主题自带较明显的圆角，且风格清新)
+        self.style = Style(theme="litera")
 
         # 窗口居中
         self.update_idletasks()
@@ -91,7 +97,7 @@ class ModernEpubTool(BaseClass):
             font=("TkDefaultFont", 16, "bold"),
             bootstyle="inverse-secondary",
         )
-        title_lbl.pack(pady=(40, 30), anchor=CENTER)
+        title_lbl.pack(pady=(30, 20), anchor=CENTER)
 
         btn_frame = ttk.Frame(sidebar, bootstyle=SECONDARY)
         btn_frame.pack(fill=X, padx=20)
@@ -99,18 +105,58 @@ class ModernEpubTool(BaseClass):
         self.create_sidebar_btn(btn_frame, "添加文件", self.add_files, style="light")
         self.create_sidebar_btn(btn_frame, "添加文件夹", self.add_dir, style="light")
 
-        ttk.Separator(sidebar, bootstyle="light").pack(fill=X, padx=20, pady=15)
+        ttk.Separator(sidebar, bootstyle="light").pack(fill=X, padx=20, pady=10)
         self.create_sidebar_btn(btn_frame, "清空列表", self.clear_files, style="danger")
 
-        if DND_AVAILABLE:
-            drag_tip = ttk.Label(
-                sidebar,
-                text="使用说明\n·\n点击上侧按钮添加删除文件\n本程序已支持文件拖拽功能\n·\n点击右侧按钮进行批量处理\n·\n右键框内文件项目查看更多\n·",
-                justify=CENTER,
-                font=("TkDefaultFont", 10),
-                bootstyle="inverse-secondary",
+        # ================= 功能按钮区 (移至侧边栏) =================
+        action_label = ttk.Label(
+            sidebar,
+            text="功能列表",
+            font=("TkDefaultFont", 12, "bold"),
+            bootstyle="inverse-secondary",
+        )
+        action_label.pack(pady=(15, 10))
+
+        action_container = ttk.Frame(sidebar, bootstyle=SECONDARY)
+        action_container.pack(fill=X, padx=10)
+
+        actions = [
+            ("格式化", reformat_run, "格式化"),
+            ("文件解密", decrypt_run, "文件名解密"),
+            ("文件加密", encrypt_run, "文件名加密"),
+            ("字体加密", run_epub_font_encrypt, "字体加密"),
+            ("字体子集化", run_epub_font_subset, "字体子集化"),
+            ("图片转WebP", run_img_to_webp, "图片转WebP"),
+            ("WebP转图片", run_webp_to_img, "WebP转图片"),
+            ("PNG压缩", run_epub_img_transfer, "PNG压缩"),
+            ("简转繁", run_s2t, "简转繁"),
+            ("繁转简", run_t2s, "繁转简"),
+            ("正则注释", None, "正则注释"), # 特殊处理
+        ]
+
+        # 使用 Grid 布局实现双列
+        for idx, (text, func, name) in enumerate(actions):
+            row = idx // 2
+            col = idx % 2
+            
+            if text == "正则注释":
+                cmd = self.start_regex_task
+            else:
+                cmd = lambda f=func, n=name: self.start_task(f, n)
+
+            btn = ttk.Button(
+                action_container,
+                text=text,
+                command=cmd,
+                bootstyle="light",  # 统一使用 light 风格
+                width=8,
             )
-            drag_tip.pack(pady=(0, 10))
+            # 添加 padding
+            btn.grid(row=row, column=col, padx=5, pady=5, sticky="ew")
+        
+        # 配置列权重，使其均匀分布
+        action_container.columnconfigure(0, weight=1)
+        action_container.columnconfigure(1, weight=1)
 
         link_lbl = ttk.Label(
             sidebar,
@@ -126,24 +172,32 @@ class ModernEpubTool(BaseClass):
         )
 
         # ================= 主内容区 =================
+        # 使用 PanedWindow 实现垂直分割
+        main_pane = ttk.PanedWindow(main_content, orient=VERTICAL)
+        main_pane.pack(fill=BOTH, expand=True)
+
+        # --- 上半部分：文件列表 + 控制栏 ---
+        top_frame = ttk.Frame(main_pane)
+        main_pane.add(top_frame, weight=1)
+
         # 1. 文件列表
         list_label = ttk.Label(
-            main_content,
+            top_frame,
             text="待处理文件",
             font=("TkDefaultFont", 12, "bold"),
             bootstyle="primary",
         )
         list_label.pack(anchor=W, pady=(0, 10))
 
-        tree_frame = ttk.Frame(main_content)
-        tree_frame.pack(fill=BOTH, expand=True, pady=(0, 20))
+        tree_frame = ttk.Frame(top_frame)
+        tree_frame.pack(fill=BOTH, expand=True, pady=(0, 10))
 
         columns = ("index", "name", "path")
         self.file_tree = ttk.Treeview(
-            tree_frame, columns=columns, show="headings", height=10, bootstyle="primary"
+            tree_frame, columns=columns, show="headings", height=8, bootstyle="primary"
         )
         self.file_tree.heading("index", text="序号", anchor=CENTER)
-        self.file_tree.column("index", width=80, anchor=CENTER, stretch=False)
+        self.file_tree.column("index", width=60, anchor=CENTER, stretch=False)
         self.file_tree.heading("name", text="文件名", anchor=W)
         self.file_tree.column("name", width=200, anchor=W)
         self.file_tree.heading("path", text="完整路径", anchor=W)
@@ -166,8 +220,8 @@ class ModernEpubTool(BaseClass):
             self.file_tree.bind("<Button-3>", self.show_file_menu)
 
         # 2. 路径与操作
-        ctrl_frame = ttk.Frame(main_content)
-        ctrl_frame.pack(fill=X, pady=(0, 20))
+        ctrl_frame = ttk.Frame(top_frame)
+        ctrl_frame.pack(fill=X, pady=(0, 10))
         self.path_var = tk.StringVar(value="默认: 源文件同级目录")
         path_entry = ttk.Entry(
             ctrl_frame, textvariable=self.path_var, state="readonly", width=40
@@ -177,51 +231,39 @@ class ModernEpubTool(BaseClass):
             ctrl_frame,
             text="设置输出路径",
             command=self.select_output,
-            bootstyle="info-outline",
+            bootstyle="outline-primary",
         ).pack(side=LEFT, padx=5)
         ttk.Button(
             ctrl_frame,
             text="重置路径",
             command=self.reset_output,
-            bootstyle="secondary-outline",
+            bootstyle="outline-primary",
         ).pack(side=LEFT)
-
-        # 3. 功能按钮
-        action_frame = ttk.Frame(main_content)
-        action_frame.pack(fill=X, pady=(0, 20))
-        actions = [
-            ("格式化", reformat_run, "格式化", "primary"),
-            ("文件解密", decrypt_run, "文件名解密", "success"),
-            ("文件加密", encrypt_run, "文件名加密", "warning"),
-            ("字体加密", run_epub_font_encrypt, "字体加密", "info"),
-            ("图片转换", run_epub_img_transfer, "图片转换", "dark"),
-        ]
-        for idx, (text, func, name, b_style) in enumerate(actions):
-            btn = ttk.Button(
-                action_frame,
-                text=text,
-                command=lambda f=func, n=name: self.start_task(f, n),
-                bootstyle=b_style,
-                width=12,
-            )
-            btn.pack(side=LEFT, padx=(0 if idx == 0 else 10, 0), fill=X, expand=True)
 
         # 4. 进度条
         self.progress = ttk.Progressbar(
-            main_content,
+            top_frame,
             bootstyle="success-striped",
             mode="determinate",
             orient=HORIZONTAL,
             length=100,
         )
-        self.progress.pack(fill=X, pady=(0, 20))
+        self.progress.pack(fill=X, pady=(0, 10))
 
-        # 5. 日志区域 (增加 output_path 列，虽然不显示，但用于存储数据)
-        log_labelframe = ttk.Labelframe(
-            main_content, text="执行日志", padding=10, bootstyle="default"
+        # --- 下半部分：日志区域 ---
+        bottom_frame = ttk.Frame(main_pane)
+        main_pane.add(bottom_frame, weight=1)
+
+        # 5. 日志区域
+        log_label = ttk.Label(
+            bottom_frame,
+            text="执行日志",
+            font=("TkDefaultFont", 12, "bold"),
+            bootstyle="primary",
         )
-        log_labelframe.pack(fill=BOTH, expand=True)
-        log_frame = ttk.Frame(log_labelframe)
+        log_label.pack(anchor=W, pady=(10, 10))
+
+        log_frame = ttk.Frame(bottom_frame)
         log_frame.pack(fill=BOTH, expand=True)
 
         # 注意：增加了 output_path 列
@@ -230,8 +272,9 @@ class ModernEpubTool(BaseClass):
             columns=("status", "file", "msg", "output_path"),
             show="headings",
             height=5,
-            bootstyle="secondary",
+            bootstyle="primary",
         )
+
         self.log_tree.heading("status", text="状态")
         self.log_tree.column("status", width=80, anchor=CENTER, stretch=False)
         self.log_tree.heading("file", text="文件名", anchor=W)
@@ -418,6 +461,38 @@ class ModernEpubTool(BaseClass):
     def reset_output(self):
         self.output_dir = None
         self.path_var.set("默认: 源文件同级目录")
+
+    def ask_regex_and_run(self, filepath, outdir):
+        # 弹窗输入正则
+        from tkinter import simpledialog
+        regex_pattern = simpledialog.askstring("正则输入", "请输入匹配正则表达式:", parent=self)
+        if not regex_pattern:
+            return "skip" # 用户取消或未输入
+        
+        # 调用实际功能，传入正则参数
+        # 注意：start_task 的 _worker 调用时只传了 func, files, out_dir
+        # 这里我们需要特殊的处理，或者让 _worker 支持变长参数
+        # 但这里的架构是 func(filepath, outdir)
+        # 我们可以用偏函数或者闭包，但 start_task 传入的是函数引用
+        # 这里的 self.ask_regex_and_run 是被绑定到按钮的
+        # 按钮调用的是 lambda: self.start_task(self.ask_regex_and_run, "正则注释")
+        # _worker 会调用 self.ask_regex_and_run(f_path, out_dir)
+        # 这会导致每次处理一个文件都弹窗！这不对。
+        
+        # 修正：应该先弹窗一次，获取正则，然后构造一个带参函数传给 start_task
+        pass
+
+    def start_regex_task(self):
+        from tkinter import simpledialog
+        regex_pattern = simpledialog.askstring("正则输入", "请输入匹配正则表达式:", parent=self)
+        if not regex_pattern:
+            return
+
+        # 构造带参函数
+        def run_with_regex(fp, od):
+            return run_regex_footnote(fp, od, regex_pattern)
+
+        self.start_task(run_with_regex, "正则注释")
 
     def start_task(self, func, task_name):
         items = self.file_tree.get_children()
