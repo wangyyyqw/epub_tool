@@ -1,0 +1,74 @@
+--- CLI Started: ['python_core/cli.py', 'img_to_webp', '/Users/qingsimuxueyichangan/go/pkg/mod/github.com/wailsapp/mimetype@v1.4.1/testdata/epub.epub'] ---
+CWD: /Users/qingsimuxueyichangan/Documents/github/epub_tool
+PYTHONPATH: ['/Users/qingsimuxueyichangan/Documents/github/epub_tool/python_core', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python314.zip', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/lib-dynload', '/Users/qingsimuxueyichangan/Library/Python/3.14/lib/python/site-packages', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages']
+Imports successful
+Parsed: cmd=img_to_webp, input=/Users/qingsimuxueyichangan/go/pkg/mod/github.com/wailsapp/mimetype@v1.4.1/testdata/epub.epub, output=None
+--- CLI Started: ['python_core/cli.py', 'img_to_webp', './test.epub'] ---
+CWD: /Users/qingsimuxueyichangan/Documents/github/epub_tool
+PYTHONPATH: ['/Users/qingsimuxueyichangan/Documents/github/epub_tool/python_core', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python314.zip', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/lib-dynload', '/Users/qingsimuxueyichangan/Library/Python/3.14/lib/python/site-packages', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages']
+Imports successful
+Parsed: cmd=img_to_webp, input=./test.epub, output=None
+--- CLI Started: ['python_core/cli.py', 'img_to_webp', '/Users/qingsimuxueyichangan/Desktop/C-029 史记 - 司马迁【平板】的副本.epub'] ---
+CWD: /Users/qingsimuxueyichangan/Documents/github/epub_tool
+PYTHONPATH: ['/Users/qingsimuxueyichangan/Documents/github/epub_tool/python_core', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python314.zip', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/lib-dynload', '/Users/qingsimuxueyichangan/Library/Python/3.14/lib/python/site-packages', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages']
+Imports successful
+Parsed: cmd=img_to_webp, input=/Users/qingsimuxueyichangan/Desktop/C-029 史记 - 司马迁【平板】的副本.epub, output=None
+--- CLI Started: ['python_core/cli.py', 'img_to_webp', '/Users/qingsimuxueyichangan/Desktop/C-029 史记 - 司马迁【平板】的副本.epub'] ---
+CWD: /Users/qingsimuxueyichangan/Documents/github/epub_tool
+PYTHONPATH: ['/Users/qingsimuxueyichangan/Documents/github/epub_tool/python_core', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python314.zip', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/lib-dynload', '/Users/qingsimuxueyichangan/Library/Python/3.14/lib/python/site-packages', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages']
+Imports successful
+Parsed: cmd=img_to_webp, input=/Users/qingsimuxueyichangan/Desktop/C-029 史记 - 司马迁【平板】的副本.epub, output=None
+--- CLI Started: ['python_core/cli.py', 'webp_to_img', '/Users/qingsimuxueyichangan/Desktop/C-029 史记 - 司马迁【平板】的副本_to_webp.epub'] ---
+CWD: /Users/qingsimuxueyichangan/Documents/github/epub_tool
+PYTHONPATH: ['/Users/qingsimuxueyichangan/Documents/github/epub_tool/python_core', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python314.zip', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/lib-dynload', '/Users/qingsimuxueyichangan/Library/Python/3.14/lib/python/site-packages', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages']
+Imports successful
+Parsed: cmd=webp_to_img, input=/Users/qingsimuxueyichangan/Desktop/C-029 史记 - 司马迁【平板】的副本_to_webp.epub, output=None
+--- CLI Started: ['python_core/cli.py', 'webp_to_img', './C-029 史记 - 司马迁【平板】的副本_to_webp.epub'] ---
+CWD: /Users/qingsimuxueyichangan/Documents/github/epub_tool
+PYTHONPATH: ['/Users/qingsimuxueyichangan/Documents/github/epub_tool/python_core', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python314.zip', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/lib-dynload', '/Users/qingsimuxueyichangan/Library/Python/3.14/lib/python/site-packages', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages']
+Imports successful
+Parsed: cmd=webp_to_img, input=./C-029 史记 - 司马迁【平板】的副本_to_webp.epub, output=None
+--- CLI Started: ['python_core/cli.py', '--help'] ---
+CWD: /Users/qingsimuxueyichangan/Documents/github/epub_tool
+PYTHONPATH: ['/Users/qingsimuxueyichangan/Documents/github/epub_tool/python_core', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python314.zip', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/lib-dynload', '/Users/qingsimuxueyichangan/Library/Python/3.14/lib/python/site-packages', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages']
+Imports successful
+Parsed: cmd=--help, input=None, output=None
+--- CLI Started: ['python_core/cli.py', 'add_pinyin', '--input', 'C-029 史记 - 司马迁【平板】的副本_to_webp.epub'] ---
+CWD: /Users/qingsimuxueyichangan/Documents/github/epub_tool
+PYTHONPATH: ['/Users/qingsimuxueyichangan/Documents/github/epub_tool/python_core', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python314.zip', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/lib-dynload', '/Users/qingsimuxueyichangan/Library/Python/3.14/lib/python/site-packages', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages']
+Imports successful
+Parsed: cmd=add_pinyin, input=C-029 史记 - 司马迁【平板】的副本_to_webp.epub, output=None
+--- CLI Started: ['python_core/cli.py', 's2t', '--input', 'C-029 史记 - 司马迁【平板】的副本_to_webp.epub'] ---
+CWD: /Users/qingsimuxueyichangan/Documents/github/epub_tool
+PYTHONPATH: ['/Users/qingsimuxueyichangan/Documents/github/epub_tool/python_core', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python314.zip', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/lib-dynload', '/Users/qingsimuxueyichangan/Library/Python/3.14/lib/python/site-packages', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages']
+Imports successful
+Parsed: cmd=s2t, input=C-029 史记 - 司马迁【平板】的副本_to_webp.epub, output=None
+--- CLI Started: ['python_core/cli.py', 'add_pinyin', '--input', '/Users/qingsimuxueyichangan/Documents/出版/C-029 史记/C-029 史记 - 司马迁note.epub'] ---
+CWD: /Users/qingsimuxueyichangan/Documents/github/epub_tool
+PYTHONPATH: ['/Users/qingsimuxueyichangan/Documents/github/epub_tool/python_core', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python314.zip', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/lib-dynload', '/Users/qingsimuxueyichangan/Library/Python/3.14/lib/python/site-packages', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages']
+Imports successful
+Parsed: cmd=add_pinyin, input=/Users/qingsimuxueyichangan/Documents/出版/C-029 史记/C-029 史记 - 司马迁note.epub, output=None
+--- CLI Started: ['python_core/cli.py', 'add_pinyin', '--input', '/Users/qingsimuxueyichangan/Documents/出版/C-029 史记/C-029 史记 - 司马迁note.epub'] ---
+CWD: /Users/qingsimuxueyichangan/Documents/github/epub_tool
+PYTHONPATH: ['/Users/qingsimuxueyichangan/Documents/github/epub_tool/python_core', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python314.zip', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/lib-dynload', '/Users/qingsimuxueyichangan/Library/Python/3.14/lib/python/site-packages', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages']
+Imports successful
+Parsed: cmd=add_pinyin, input=/Users/qingsimuxueyichangan/Documents/出版/C-029 史记/C-029 史记 - 司马迁note.epub, output=None
+--- CLI Started: ['python_core/cli.py', 'add_pinyin', '--input', 'C-029 史记 - 司马迁note.epub'] ---
+CWD: /Users/qingsimuxueyichangan/Documents/github/epub_tool
+PYTHONPATH: ['/Users/qingsimuxueyichangan/Documents/github/epub_tool/python_core', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python314.zip', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/lib-dynload', '/Users/qingsimuxueyichangan/Library/Python/3.14/lib/python/site-packages', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages']
+Imports successful
+Parsed: cmd=add_pinyin, input=C-029 史记 - 司马迁note.epub, output=None
+--- CLI Started: ['python_core/cli.py', 'add_pinyin', '--input', '/Users/qingsimuxueyichangan/Documents/出版/C-029 史记/C-029 史记 - 司马迁note.epub'] ---
+CWD: /Users/qingsimuxueyichangan/Documents/github/epub_tool
+PYTHONPATH: ['/Users/qingsimuxueyichangan/Documents/github/epub_tool/python_core', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python314.zip', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/lib-dynload', '/Users/qingsimuxueyichangan/Library/Python/3.14/lib/python/site-packages', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages']
+Imports successful
+Parsed: cmd=add_pinyin, input=/Users/qingsimuxueyichangan/Documents/出版/C-029 史记/C-029 史记 - 司马迁note.epub, output=None
+--- CLI Started: ['python_core/cli.py', 'yuewei_to_duokan', '--input', 'C-029 史记 - 司马迁【平板】的副本_to_webp.epub'] ---
+CWD: /Users/qingsimuxueyichangan/Documents/github/epub_tool
+PYTHONPATH: ['/Users/qingsimuxueyichangan/Documents/github/epub_tool/python_core', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python314.zip', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/lib-dynload', '/Users/qingsimuxueyichangan/Library/Python/3.14/lib/python/site-packages', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages']
+ImportError: No module named 'utils.pinyin_annotate'
+Traceback (most recent call last):
+  File "/Users/qingsimuxueyichangan/Documents/github/epub_tool/python_core/cli.py", line 39, in <module>
+    from utils.pinyin_annotate import run_add_pinyin
+ModuleNotFoundError: No module named 'utils.pinyin_annotate'
+

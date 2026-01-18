@@ -1,12 +1,3 @@
-build
-dist
-test
-epub_tool.spec
-log.txt
-result.txt
-log_file
-epub_tool_TKUI.spec
-.DS_Store
-*.epub
-.vscode
-__pycache__/
+build/bin
+node_modules
+frontend/dist
