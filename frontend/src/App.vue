@@ -14,10 +14,18 @@
         <div class="modal-header">
           <h3>📋 运行日志</h3>
           <div class="modal-actions">
-            <button class="btn-sm" @click="refreshLog">刷新</button>
-            <button class="btn-sm" @click="copyLog">复制</button>
-            <button class="btn-sm" @click="openLogExternal">外部打开</button>
-            <button class="btn-sm btn-close" @click="showLogModal = false">✕</button>
+            <button class="btn-sm" @click="refreshLog" title="刷新日志">
+              <span class="btn-icon">🔄</span> 刷新
+            </button>
+            <button class="btn-sm" @click="copyLog" title="复制日志">
+              <span class="btn-icon">📋</span> 复制
+            </button>
+            <button class="btn-sm" @click="openLogExternal" title="外部打开日志">
+              <span class="btn-icon">📤</span> 外部打开
+            </button>
+            <button class="btn-sm btn-close" @click="showLogModal = false" title="关闭">
+              ✕
+            </button>
           </div>
         </div>
         <div class="modal-body">
@@ -26,18 +34,19 @@
       </div>
     </div>
 
-    <Sidebar 
+    <Sidebar
       @add-files="addFiles"
       @add-dir="addDir"
       @clear-files="clearFiles"
       @run-task="runTask"
     />
-    
+
     <div class="main-content">
       <!-- Theme Toggle Button -->
       <div class="theme-toggle">
-        <button class="btn-sm" @click="toggleTheme">
-          {{ isDarkMode ? '🌙 夜间模式' : '☀️ 日间模式' }}
+        <button class="btn-sm" @click="toggleTheme" :title="isDarkMode ? '切换到日间模式' : '切换到夜间模式'">
+          <span class="theme-icon">{{ isDarkMode ? '🌙' : '☀️' }}</span>
+          {{ isDarkMode ? '夜间模式' : '日间模式' }}
         </button>
       </div>
 
@@ -51,22 +60,27 @@
         <div class="status-progress-card">
           <!-- Output Directory Control -->
           <div class="output-control">
-            <span class="label">输出目录:</span>
+            <span class="label">📁 输出目录:</span>
             <span class="path" :title="outputDir || '默认 (源文件目录)'">
               {{ outputDir || '默认 (源文件目录)' }}
             </span>
-            <button class="btn-sm" @click="selectOutputDir">更改...</button>
-            <button class="btn-sm btn-text" v-if="outputDir" @click="outputDir = ''">重置</button>
+            <button class="btn-sm" @click="selectOutputDir" title="选择输出目录">
+              <span class="btn-icon">📁</span> 更改
+            </button>
+            <button class="btn-sm btn-text" v-if="outputDir" @click="outputDir = ''" title="重置输出目录">
+              <span class="btn-icon">↺</span> 重置
+            </button>
             <div class="app-status">
-              Ready
+              <span class="status-indicator" :class="{ 'status-active': progress.current > 0 && progress.current < progress.total }"></span>
+              {{ progress.current > 0 && progress.current < progress.total ? '处理中...' : '就绪' }}
             </div>
           </div>
 
           <!-- Progress Section with Log Button -->
           <div class="progress-section">
-            <ProgressBar 
-              :current="progress.current" 
-              :total="progress.total" 
+            <ProgressBar
+              :current="progress.current"
+              :total="progress.total"
               @open-log="openLogViewer"
             />
           </div>
@@ -378,6 +392,9 @@ onUnmounted(() => {
   margin-left: auto;
   color: #adb5bd;
   font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
 .progress-section {
@@ -411,6 +428,9 @@ onUnmounted(() => {
   background: white;
   cursor: pointer;
   color: #495057;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
 .btn-sm:hover {
@@ -432,6 +452,28 @@ onUnmounted(() => {
 .app-status {
   color: #adb5bd;
   font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #28a745;
+  opacity: 0.3;
+}
+
+.status-indicator.status-active {
+  opacity: 1;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.3; }
+  50% { opacity: 1; }
+  100% { opacity: 0.3; }
 }
 
 /* Drag Overlay */
@@ -535,6 +577,10 @@ onUnmounted(() => {
   font-size: 1rem;
 }
 
+.btn-icon {
+  font-size: 0.9em;
+}
+
 .modal-body {
   flex: 1;
   overflow: auto;
@@ -561,11 +607,11 @@ onUnmounted(() => {
 }
 
 :global(.dark-mode) .output-control {
-  color: #e0e0e0;
+  color: #ffffff;
 }
 
 :global(.dark-mode) .output-control .app-status {
-  color: #757575;
+  color: #cccccc;
 }
 
 :global(.dark-mode) .progress-section {
@@ -573,14 +619,14 @@ onUnmounted(() => {
 }
 
 :global(.dark-mode) .output-control .path {
-  background: #444;
-  color: #e0e0e0;
+  background: #333;
+  color: #ffffff;
 }
 
 :global(.dark-mode) .btn-sm {
   border-color: #444;
   background: #333;
-  color: #e0e0e0;
+  color: #ffffff;
 }
 
 :global(.dark-mode) .btn-sm:hover {
@@ -589,11 +635,11 @@ onUnmounted(() => {
 }
 
 :global(.dark-mode) .btn-text {
-  color: #9e9e9e;
+  color: #cccccc;
 }
 
 :global(.dark-mode) .btn-text:hover {
-  color: #e0e0e0;
+  color: #ffffff;
 }
 
 :global(.dark-mode) .modal-content {
@@ -606,17 +652,21 @@ onUnmounted(() => {
 }
 
 :global(.dark-mode) .modal-header h3 {
-  color: #e0e0e0;
+  color: #ffffff;
 }
 
 :global(.dark-mode) .btn-close {
   border-color: #444;
   background: #333;
-  color: #e0e0e0;
+  color: #ffffff;
 }
 
 :global(.dark-mode) .btn-close:hover {
   background: #444;
   border-color: #555;
+}
+
+:global(.dark-mode) .status-indicator {
+  background-color: #69db7c;
 }
 </style>

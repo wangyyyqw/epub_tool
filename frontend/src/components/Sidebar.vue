@@ -1,7 +1,7 @@
 <template>
   <div class="sidebar">
     <div class="sidebar-title">Epub Tool</div>
-    
+
     <div class="sidebar-group">
       <div class="sidebar-group-title">文件操作</div>
       <div class="sidebar-group-buttons">

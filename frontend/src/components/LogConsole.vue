@@ -117,4 +117,35 @@ watch(() => props.logs.length, () => {
   border-radius: 5px;
   border: 2px solid #1e1e1e;
 }
+
+/* Dark Mode Styles */
+:global(.dark-mode) .log-container {
+  background-color: #252525;
+}
+
+:global(.dark-mode) .log-header {
+  background-color: #1e1e1e;
+  color: #ffffff;
+  border-bottom: 1px solid #333;
+}
+
+:global(.dark-mode) .log-msg {
+  color: #d4d4d4;
+}
+
+:global(.dark-mode) .log-error {
+  color: #ff6b6b;
+}
+
+:global(.dark-mode) .log-success {
+  color: #69db7c;
+}
+
+:global(.dark-mode) .log-warning {
+  color: #ffd43b;
+}
+
+:global(.dark-mode) .log-empty {
+  color: #666666;
+}
 </style>

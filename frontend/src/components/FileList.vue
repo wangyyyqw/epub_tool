@@ -174,39 +174,39 @@ defineProps({
 
 :global(.dark-mode) .file-table th {
   background-color: #333;
-  color: #e0e0e0;
+  color: #ffffff;
   border-bottom-color: #444;
 }
 
 :global(.dark-mode) .file-table td {
   background-color: #2d2d2d;
-  color: #e0e0e0;
+  color: #ffffff;
   border-bottom-color: #444;
 }
 
 :global(.dark-mode) .file-name {
-  color: #e0e0e0;
+  color: #ffffff;
+  font-weight: 600;
 }
 
 :global(.dark-mode) .file-path {
-  color: #9e9e9e;
+  color: #cccccc;
 }
 
 :global(.dark-mode) .empty-state {
-  color: #9e9e9e;
+  color: #cccccc;
 }
 
 :global(.dark-mode) .empty-state h3 {
-  color: #e0e0e0;
+  color: #ffffff;
 }
 
-
 :global(.dark-mode) .col-index {
-  color: #757575;
+  color: #bbbbbb;
 }
 
 :global(.dark-mode) .file-table tbody tr:hover td {
-  background-color: #333;
+  background-color: #3a3a3a;
 }
 </style>
 
