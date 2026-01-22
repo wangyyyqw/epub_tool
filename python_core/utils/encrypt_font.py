@@ -74,37 +74,37 @@ class FontEncrypt:
         )
 
     def find_local_fonts_mapping(self):
-        font_face_rules = []
+        mapping = {}
         for css in self.css:
             with self.epub.open(css) as f:
                 content = f.read().decode("utf-8")
                 rules = parse_stylesheet(content)
-                # 遍历所有规则，查找 @font-face
                 for rule in rules:
-                    all_count = 0
                     if rule.type == "at-rule" and rule.lower_at_keyword == "font-face":
-                        tmp_font_face = serialize(rule.content)
-
-                        local_count, url_count = tmp_font_face.count(
-                            "local"
-                        ), tmp_font_face.count("url")
-                        all_count += local_count + url_count
-                        if all_count == 1:
-                            tmp_list = []
-
-                            for item in tmp_font_face.split(";"):
-                                if len(item.strip()) > 0:
-                                    tmp_list.append(item.strip())
-                            font_face_rules.append(tmp_list)
-        mapping = {}
-        for font in self.fonts:
-            font_name = os.path.basename(font)
-            for j in font_face_rules:
-                if font_name in j[1]:
-                    font_family = (
-                        j[0].split(":")[1].strip().replace('"', "").replace("'", "")
-                    )
-                    mapping[font_family] = font
+                        declarations = parse_declaration_list(rule.content)
+                        font_family = None
+                        src_urls = []
+                        
+                        for decl in declarations:
+                            if decl.type == "declaration":
+                                if decl.lower_name == "font-family":
+                                    font_family = serialize(decl.value).strip().strip('"\'')
+                                elif decl.lower_name == "src":
+                                    for token in decl.value:
+                                        if token.type == 'url':
+                                            src_urls.append(token.value)
+                                        elif token.type == 'function' and token.lower_name == 'url':
+                                            val = serialize(token.arguments).strip().strip('"\'')
+                                            src_urls.append(val)
+                        
+                        if font_family and src_urls:
+                            for url in src_urls:
+                                # 尝试匹配文件名
+                                url_basename = os.path.basename(url).split('?')[0].split('#')[0]
+                                for font_path in self.fonts:
+                                    if os.path.basename(font_path) == url_basename:
+                                        mapping[font_family] = font_path
+                                        
         self.font_to_font_family_mapping = mapping
 
     def find_selector_to_font_mapping(self):
@@ -401,13 +401,10 @@ class FontEncrypt:
                 font_file = self.css_selector_to_font_mapping[css_selector]
                 replace_table = self.font_to_char_mapping[font_file]
                 trans_table = str.maketrans(replace_table)
-                if "." in css_selector:
-                    selector, selector_class = css_selector.split(".", 1)
-                    selector_tags = soup.find_all(selector, class_=selector_class)
-                else:
-                    selector, selector_class = css_selector, None
-                    # print(selector, selector_class)
-                    selector_tags = soup.find_all(selector)
+                
+                # Use soup.select instead of manual parsing
+                selector_tags = soup.select(css_selector)
+                
                 for tag in selector_tags:
                     ori_text = "".join(str(item) for item in tag.contents)
                     new_text = ori_text.translate(trans_table)

@@ -8,6 +8,7 @@ from os import path
 from urllib.parse import unquote
 from xml.etree import ElementTree
 import os
+import shutil
 
 try:
     from utils.log import logwriter
@@ -328,6 +329,20 @@ class EpubTool:
             zipfile.ZIP_STORED,
         )
 
+    def _stream_copy_file(self, src_path, dest_path):
+        """
+        Stream copy a file from source epub to target epub to avoid memory issues with large files.
+        """
+        try:
+            with self.epub.open(src_path, 'r') as source_file:
+                # Use ZipInfo to specify compression
+                zinfo = zipfile.ZipInfo(filename=dest_path)
+                zinfo.compress_type = zipfile.ZIP_DEFLATED
+                with self.tgt_epub.open(zinfo, 'w') as target_file:
+                    shutil.copyfileobj(source_file, target_file)
+        except Exception as e:
+            logger.write(f"Error streaming file {src_path} to {dest_path}: {e}")
+
     # 重构
     def restructure(self):
         self.tgt_epub = self.create_tgt_epub()
@@ -628,49 +643,19 @@ class EpubTool:
             )
         # 图片
         for img_bkpath, new_name in re_path_map["image"].items():
-            try:
-                img = self.epub.read(img_bkpath)
-            except:
-                continue
-            self.tgt_epub.writestr(
-                "OEBPS/Images/" + new_name, img, zipfile.ZIP_DEFLATED
-            )
+            self._stream_copy_file(img_bkpath, "OEBPS/Images/" + new_name)
         # 字体
         for font_bkpath, new_name in re_path_map["font"].items():
-            try:
-                font = self.epub.read(font_bkpath)
-            except:
-                continue
-            self.tgt_epub.writestr(
-                "OEBPS/Fonts/" + new_name, font, zipfile.ZIP_DEFLATED
-            )
+            self._stream_copy_file(font_bkpath, "OEBPS/Fonts/" + new_name)
         # 音频
         for audio_bkpath, new_name in re_path_map["audio"].items():
-            try:
-                audio = self.epub.read(audio_bkpath)
-            except:
-                continue
-            self.tgt_epub.writestr(
-                "OEBPS/Audio/" + new_name, audio, zipfile.ZIP_DEFLATED
-            )
+            self._stream_copy_file(audio_bkpath, "OEBPS/Audio/" + new_name)
         # 视频
         for video_bkpath, new_name in re_path_map["video"].items():
-            try:
-                video = self.epub.read(video_bkpath)
-            except:
-                continue
-            self.tgt_epub.writestr(
-                "OEBPS/Video/" + new_name, video, zipfile.ZIP_DEFLATED
-            )
+            self._stream_copy_file(video_bkpath, "OEBPS/Video/" + new_name)
         # 其他
         for font_bkpath, new_name in re_path_map["other"].items():
-            try:
-                other = self.epub.read(font_bkpath)
-            except:
-                continue
-            self.tgt_epub.writestr(
-                "OEBPS/Misc/" + new_name, other, zipfile.ZIP_DEFLATED
-            )
+            self._stream_copy_file(font_bkpath, "OEBPS/Misc/" + new_name)
         # OPF
         manifest_text = "<manifest>"
 

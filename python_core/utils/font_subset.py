@@ -68,31 +68,37 @@ class FontSubset:
         )
 
     def find_local_fonts_mapping(self):
-        font_face_rules = []
+        mapping = {}
         for css in self.css:
             with self.epub.open(css) as f:
                 content = f.read().decode("utf-8")
                 rules = parse_stylesheet(content)
                 for rule in rules:
                     if rule.type == "at-rule" and rule.lower_at_keyword == "font-face":
-                        tmp_font_face = serialize(rule.content)
-                        if "url" in tmp_font_face:
-                            tmp_list = []
-                            for item in tmp_font_face.split(";"):
-                                if len(item.strip()) > 0:
-                                    tmp_list.append(item.strip())
-                            font_face_rules.append(tmp_list)
-                            
-        mapping = {}
-        for font in self.fonts:
-            font_name = os.path.basename(font)
-            for j in font_face_rules:
-                if font_name in j[1]:
-                    # 提取 font-family
-                    for prop in j:
-                        if "font-family" in prop:
-                            font_family = prop.split(":")[1].strip().replace('"', "").replace("'", "")
-                            mapping[font_family] = font
+                        declarations = parse_declaration_list(rule.content)
+                        font_family = None
+                        src_urls = []
+                        
+                        for decl in declarations:
+                            if decl.type == "declaration":
+                                if decl.lower_name == "font-family":
+                                    font_family = serialize(decl.value).strip().strip('"\'')
+                                elif decl.lower_name == "src":
+                                    for token in decl.value:
+                                        if token.type == 'url':
+                                            src_urls.append(token.value)
+                                        elif token.type == 'function' and token.lower_name == 'url':
+                                            val = serialize(token.arguments).strip().strip('"\'')
+                                            src_urls.append(val)
+                        
+                        if font_family and src_urls:
+                            for url in src_urls:
+                                # 尝试匹配文件名
+                                url_basename = os.path.basename(url).split('?')[0].split('#')[0]
+                                for font_path in self.fonts:
+                                    if os.path.basename(font_path) == url_basename:
+                                        mapping[font_family] = font_path
+                                        
         self.font_to_font_family_mapping = mapping
 
     def find_selector_to_font_mapping(self):

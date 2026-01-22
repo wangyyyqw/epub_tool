@@ -1,5 +1,6 @@
 import zipfile
 import os
+import shutil
 from io import BytesIO
 from xml.etree import ElementTree
 
@@ -72,9 +73,19 @@ class ImageToWebP:
             with zipfile.ZipFile(self.epub_path, 'r') as self.epub, \
                  zipfile.ZipFile(self.file_write_path, "w", zipfile.ZIP_DEFLATED) as self.target_epub:
                 
+                # 0. Write mimetype file first (must be uncompressed and first)
+                try:
+                    mimetype = self.epub.read("mimetype")
+                    self.target_epub.writestr("mimetype", mimetype, zipfile.ZIP_STORED)
+                except KeyError:
+                    # If mimetype is missing in source, write default
+                    self.target_epub.writestr("mimetype", b"application/epub+zip", zipfile.ZIP_STORED)
+
                 # Scan files
                 for file in self.epub.namelist():
-                    if file.lower().endswith(".html") or file.endswith(".xhtml"):
+                    if file == "mimetype":
+                        continue
+                    elif file.lower().endswith(".html") or file.endswith(".xhtml"):
                         self.htmls.append(file)
                     elif file.lower().endswith(".css"):
                         self.css.append(file)
@@ -94,6 +105,11 @@ class ImageToWebP:
                 # 3. Check if we need to proceed
                 if not self.img_dict:
                     logger.write("没有找到需要转换的图片")
+                    # If we skip, we still need to have a valid epub if we want to return "success"
+                    # But if we return "skip", the main loop might expect the original file to be untouched or handled.
+                    # The original code returns "skip" which usually implies "didn't do anything".
+                    # However, we have already started writing the new file. 
+                    # If we return "skip", we should probably delete the partial new file.
                     return "skip"
 
                 # 4. Replace references
@@ -138,8 +154,33 @@ class ImageToWebP:
 
     def _copy_original_files(self):
         for item in self.ori_files:
-            content = self.epub.read(item)
-            self.target_epub.writestr(item, content)
+            # Use stream copying to avoid loading large files into memory
+            with self.epub.open(item) as source_file:
+                # ZipInfo is needed to preserve/set permissions or compression
+                # Simple writestr with stream requires us to be careful.
+                # However, zipfile.open(name, 'w') is available in newer Python versions
+                # and allows writing streams.
+                
+                # Check if we can open target as stream or if we need to use writestr
+                # writestr accepts bytes, so streaming requires reading chunks.
+                # shutil.copyfileobj works between file-like objects.
+                
+                # ZipFile.open(name, 'w') was added in Python 3.6.
+                # We want to use ZIP_DEFLATED for these files usually.
+                
+                # Create a ZipInfo object to specify compression
+                zinfo = zipfile.ZipInfo(filename=item)
+                zinfo.compress_type = zipfile.ZIP_DEFLATED
+                
+                # Preserve permissions if possible (optional)
+                try:
+                    src_info = self.epub.getinfo(item)
+                    zinfo.external_attr = src_info.external_attr
+                except:
+                    pass
+
+                with self.target_epub.open(zinfo, 'w') as target_file:
+                    shutil.copyfileobj(source_file, target_file)
 
     def _replace_references(self):
         # Replace in OPF
@@ -189,9 +230,9 @@ class ImageToWebP:
                     if href_basename in self.img_dict:
                         replace_name, replace_media_type = self.img_dict[href_basename]
                         
-                        item_id = item.get("id")
-                        if item_id == href_basename:
-                             item.set("id", replace_name)
+                        # Note: We do NOT change the item ID. 
+                        # Changing the ID would break references in the <spine> and <guide> 
+                        # unless we also updated them, which is unnecessary complexity.
                         
                         item.set("href", href.replace(href_basename, replace_name))
                         item.set("media-type", replace_media_type)

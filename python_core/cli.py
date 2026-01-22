@@ -2,16 +2,21 @@ import sys
 import os
 import json
 import traceback
+import logging
 
 # Setup a debug log file in the same directory as this script
 debug_log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cli_debug.log")
 
+# Configure logging
+logging.basicConfig(
+    filename=debug_log_path,
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    encoding='utf-8'
+)
+
 def log_debug(msg):
-    try:
-        with open(debug_log_path, "a", encoding="utf-8") as f:
-            f.write(msg + "\n")
-    except:
-        pass
+    logging.debug(msg)
 
 log_debug(f"--- CLI Started: {sys.argv} ---")
 log_debug(f"CWD: {os.getcwd()}")

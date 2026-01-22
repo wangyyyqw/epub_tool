@@ -778,28 +778,16 @@ class EpubTool:
         def re_refer(match):
             href = match.group(3)
             href = unquote(href).strip()
-            
-            # Handle anchor fragment
-            if "#" in href:
-                href_base, target_id = href.split("#", 1)
-                target_id = "#" + target_id
-            else:
-                href_base = href
-                target_id = ""
-            
-            basename = path.basename(href_base)
+            basename = path.basename(href)
             filename = unquote(basename)
             if not basename.endswith(".ncx"):
-                if href_base.startswith("/"):
-                    href_base = href_base[1:]
-                elif href_base.startswith("./"):
-                    href_base = href_base[2:]
-                elif href_base.startswith("../"):
-                    href_base = href_base[3:]
-                if href_base in self.toc_rn:
-                    return match.group(1) + "Text/" + self.toc_rn[href_base] + target_id + match.group(4)
-                else:
-                    return match.group()  # Return original if not found in toc_rn
+                if href.startswith("/"):
+                    href = href[1:]
+                elif href.startswith("./"):
+                    href = href[2:]
+                elif href.startswith("../"):
+                    href = href[3:]
+                return match.group(1) + "Text/" + self.toc_rn[href] + match.group(4)
             else:
                 return match.group()
 
