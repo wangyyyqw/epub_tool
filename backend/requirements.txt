@@ -1,0 +1,11 @@
+beautifulsoup4
+ebooklib
+emoji
+fonttools
+tinycss2
+tqdm
+pillow
+ttkbootstrap
+tkinterdnd2
+pypinyin
+opencc-python-reimplemented

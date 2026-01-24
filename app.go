@@ -15,6 +15,11 @@ import (
 	wailsRuntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
+const (
+	maxWorkersLimit = 8  // Maximum number of concurrent workers
+	defaultWorkersLimit = 4  // Default maximum number of concurrent workers
+)
+
 // App struct
 type App struct {
 	ctx    context.Context
@@ -40,8 +45,13 @@ func (a *App) initLogger() {
 	// Open file with O_TRUNC to overwrite on each startup
 	file, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
-		fmt.Println("Error creating log file:", err)
-		return
+		// If we can't create log in exe dir, try current directory
+		logPath = "log.txt"
+		file, err = os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+		if err != nil {
+			fmt.Println("Error creating log file in current directory:", err)
+			return
+		}
 	}
 
 	a.logFile = file
@@ -86,11 +96,11 @@ func (a *App) shutdown(ctx context.Context) {
 // SelectFiles opens a file dialog to select EPUB files
 func (a *App) SelectFiles() []string {
 	selection, err := wailsRuntime.OpenMultipleFilesDialog(a.ctx, wailsRuntime.OpenDialogOptions{
-		Title: "选择EPUB文件",
+		Title: "选择文件",
 		Filters: []wailsRuntime.FileFilter{
 			{
-				DisplayName: "EPUB Files",
-				Pattern:     "*.epub;*.EPUB",
+				DisplayName: "EPUB/TXT Files",
+				Pattern:     "*.epub;*.EPUB;*.txt;*.TXT",
 			},
 		},
 	})
@@ -119,15 +129,33 @@ func (a *App) SelectDir() string {
 func (a *App) GetLogContent() string {
 	exePath, err := os.Executable()
 	if err != nil {
-		return "Error: Unable to get executable path"
+		return "Error: Unable to get executable path - " + err.Error()
 	}
 	exeDir := filepath.Dir(exePath)
 	logPath := filepath.Join(exeDir, "log.txt")
 
+	// Try to read from exe dir first, then fall back to current directory
 	content, err := os.ReadFile(logPath)
 	if err != nil {
-		return "Error: Unable to read log file - " + err.Error()
+		// Try reading from current directory as fallback
+		currentDirLogPath := "log.txt"
+		content, err = os.ReadFile(currentDirLogPath)
+		if err != nil {
+			return "Error: Unable to read log file from both executable and current directory - " + err.Error()
+		}
 	}
+
+	// Limit log content size to prevent memory issues with very large logs
+	const maxLogSize = 1024 * 1024 // 1MB
+	if len(content) > maxLogSize {
+		// Return the last maxLogSize bytes of the log
+		startIndex := len(content) - maxLogSize
+		content = content[startIndex:]
+		// Add a header indicating that the log was truncated
+		truncatedHeader := fmt.Sprintf("[LOG TRUNCATED: Showing last %d bytes]\n", maxLogSize)
+		content = append([]byte(truncatedHeader), content...)
+	}
+
 	return string(content)
 }
 
@@ -205,36 +233,61 @@ func (a *App) RunTask(files []string, command string, outputDir string, extraJso
 		// Try multiple locations: next to executable, in Resources folder (macOS), or project root
 		var scriptPath string
 		possiblePaths := []string{
-			filepath.Join(exeDir, "python_core", "cli.py"),
-			filepath.Join(exeDir, "..", "Resources", "python_core", "cli.py"), // macOS .app bundle
-			filepath.Join(exeDir, "..", "..", "..", "python_core", "cli.py"),  // Development: go up from .app/Contents/MacOS
-			"python_core/cli.py", // Fallback to relative path
+			filepath.Join(exeDir, "backend", "cli.py"),
+			filepath.Join(exeDir, "..", "Resources", "backend", "cli.py"), // macOS .app bundle
+			filepath.Join(exeDir, "..", "..", "..", "backend", "cli.py"),  // Development: go up from .app/Contents/MacOS
+			"backend/cli.py", // Fallback to relative path
 		}
+
 		for _, p := range possiblePaths {
-			if _, err := os.Stat(p); err == nil {
-				scriptPath = p
+			// Use Abs to resolve relative paths for proper checking
+			resolvedPath, err := filepath.Abs(p)
+			if err != nil {
+				a.log("Error resolving path %s: %v", p, err)
+				continue
+			}
+
+			if _, err := os.Stat(resolvedPath); err == nil {
+				scriptPath = resolvedPath
 				break
 			}
 		}
+
 		if scriptPath == "" {
 			scriptPath = possiblePaths[len(possiblePaths)-1] // Use relative as last resort
+			// Also try to resolve this to absolute path
+			scriptPath, _ = filepath.Abs(scriptPath)
 		}
 		if !useSidecar {
 			a.log("Python script path: %s", scriptPath)
 		}
 
 		// Concurrency control - limit parallel workers
+		// Allow configuration of max workers, default to min(CPU count, defaultWorkersLimit)
 		maxWorkers := runtime.NumCPU()
-		if maxWorkers > 4 {
-			maxWorkers = 4 // Cap at 4 to avoid overwhelming the system
+		if maxWorkers > defaultWorkersLimit {
+			maxWorkers = defaultWorkersLimit // Cap to avoid overwhelming the system
 		}
 		a.log("Using %d parallel workers", maxWorkers)
-		
+
 		sem := make(chan struct{}, maxWorkers)
 		var wg sync.WaitGroup
 		var progressMu sync.Mutex
 		completed := 0
 		total := len(files)
+
+		// Check if all input files exist before starting processing
+		for _, file := range files {
+			if _, err := os.Stat(file); os.IsNotExist(err) {
+				a.log("Input file does not exist: %s", file)
+				wailsRuntime.EventsEmit(a.ctx, "task_result", TaskResult{
+					Status:  "error",
+					File:    file,
+					Message: fmt.Sprintf("Input file does not exist: %s", file),
+				})
+				continue
+			}
+		}
 
 		for _, file := range files {
 			wg.Add(1)
@@ -263,6 +316,9 @@ func (a *App) RunTask(files []string, command string, outputDir string, extraJso
 					}
 					cmd = exec.Command(pythonCmd, cmdArgs...)
 				}
+
+				// Set command working directory to executable directory to ensure consistent behavior
+				cmd.Dir = exeDir
 
 				output, err := cmd.CombinedOutput()
 				elapsed := time.Since(fileStart)

@@ -1,0 +1,15 @@
+time: 2026-01-23 22:05:34
+
+=== 开始转换 TXT 到 EPUB ===
+源文件: /Users/qingsimuxueyichangan/Documents/github/epub_tool/test_input.txt
+正在读取文本文件: /Users/qingsimuxueyichangan/Documents/github/epub_tool/test_input.txt
+文本读取完成，共 89 字符
+正在解析章节...
+使用规则: [{'pattern': '^第[一二三四五六七八九十百千0-9]+[卷].*', 'level': 1}, {'pattern': '^第[一二三四五六七八九十百千0-9]+[章].*', 'level': 2}, {'pattern': '^第[一二三四五六七八九十百千0-9]+节.*', 'level': 3}]
+章节解析完成，共 3 个章节
+长章节拆分后，共 3 个章节
+正在创建EPUB: /Users/qingsimuxueyichangan/Documents/github/epub_tool/test_output_rules.epub
+EPUB创建完成: /Users/qingsimuxueyichangan/Documents/github/epub_tool/test_output_rules.epub
+转换完成: /Users/qingsimuxueyichangan/Documents/github/epub_tool/test_output_rules.epub
+=== 转换成功 ===
+

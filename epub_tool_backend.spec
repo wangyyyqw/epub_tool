@@ -2,8 +2,8 @@
 
 
 a = Analysis(
-    ['python_core/cli.py'],
-    pathex=['python_core'],
+    ['backend/cli.py'],
+    pathex=['backend'],
     binaries=[],
     datas=[],
     hiddenimports=[],

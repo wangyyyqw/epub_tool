@@ -8,6 +8,12 @@
       </div>
     </div>
 
+    <!-- Help Modal -->
+    <HelpModal 
+      v-if="showHelpModal" 
+      @close="showHelpModal = false" 
+    />
+
     <!-- Log Viewer Modal -->
     <div v-if="showLogModal" class="modal-overlay" @click.self="showLogModal = false">
       <div class="modal-content">
@@ -42,12 +48,15 @@
     />
 
     <div class="main-content">
-      <!-- Theme Toggle Button -->
-      <div class="theme-toggle">
-        <button class="btn-sm" @click="toggleTheme" :title="isDarkMode ? '切换到日间模式' : '切换到夜间模式'">
-          <span class="theme-icon">{{ isDarkMode ? '🌙' : '☀️' }}</span>
-          {{ isDarkMode ? '夜间模式' : '日间模式' }}
-        </button>
+      <div class="top-bar">
+        <div class="top-bar-right">
+          <button class="btn-icon-only" @click="showHelpModal = true" title="使用说明">
+            ❓
+          </button>
+          <button class="btn-icon-only" @click="toggleTheme" :title="currentTheme === 'dark' ? '切换到日间模式' : '切换到夜间模式'">
+            {{ currentTheme === 'dark' ? '🌙' : '☀️' }}
+          </button>
+        </div>
       </div>
 
       <!-- File List Area -->
@@ -101,6 +110,8 @@ import Sidebar from './components/Sidebar.vue'
 import FileList from './components/FileList.vue'
 import LogConsole from './components/LogConsole.vue'
 import ProgressBar from './components/ProgressBar.vue'
+import HelpModal from './components/HelpModal.vue'
+import { getCurrentTheme, applyTheme } from './themes.js'
 
 import { SelectFiles, SelectDir, RunTask, GetLogContent, OpenLogFile } from '../wailsjs/go/main/App'
 import { EventsOn } from '../wailsjs/runtime/runtime'
@@ -111,6 +122,7 @@ const outputDir = ref('')
 const progress = ref({ current: 0, total: 0 })
 const isDragging = ref(false)
 const showLogModal = ref(false)
+const showHelpModal = ref(false)
 const logContent = ref('')
 let dragCounter = 0
 
@@ -169,8 +181,27 @@ const runTask = async (taskName) => {
     return
   }
 
-  let extra = {}
+  // Intercept TXT to EPUB for preview
+  if (taskName === 'txt_to_epub') {
+    // Robust default rules matching user's likely content
+    const rules = [
+      { pattern: '^\\s*第[一二三四五六七八九十零〇百千两0-9]+[卷].*', level: 1 },
+      { pattern: '^\\s*第[一二三四五六七八九十零〇百千两0-9]+[章].*', level: 2 },
+      { pattern: '^\\s*第[一二三四五六七八九十零〇百千两0-9]+节.*', level: 3 },
+      { pattern: '^\\s*Chapter\\s+[0-9]+.*', level: 2 },
+      { pattern: '^\\s*[0-9]+\\..*', level: 2 }
+    ]
+    
+    // Execute task directly with rules
+    const extra = { rules: rules }
+    await startTaskExecution(taskName, extra)
+    return
+  }
 
+  await startTaskExecution(taskName, {})
+}
+
+const startTaskExecution = async (taskName, extra) => {
   const paths = files.value.map(f => f.path)
   progress.value = { current: 0, total: paths.length }
 
@@ -232,30 +263,32 @@ const copyLog = async () => {
 }
 
 // Theme Functions
-const isDarkMode = ref(false)
+const currentTheme = ref(getCurrentTheme())
+
+// Apply initial theme
+onMounted(() => {
+  applyTheme(currentTheme.value)
+})
 
 // Check system theme
 const checkSystemTheme = () => {
   if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-    setDarkMode(true)
+    setTheme('dark')
   } else {
-    setDarkMode(false)
+    setTheme('light')
   }
 }
 
-// Set dark mode
-const setDarkMode = (dark) => {
-  isDarkMode.value = dark
-  if (dark) {
-    document.documentElement.classList.add('dark-mode')
-  } else {
-    document.documentElement.classList.remove('dark-mode')
-  }
+// Set theme
+const setTheme = (themeName) => {
+  currentTheme.value = themeName
+  applyTheme(themeName)
 }
 
 // Theme Toggle Function
 const toggleTheme = () => {
-  setDarkMode(!isDarkMode.value)
+  const newTheme = currentTheme.value === 'light' ? 'dark' : 'light'
+  setTheme(newTheme)
 }
 
 // Drag and Drop Handlers
@@ -287,9 +320,9 @@ const handleDrop = (e) => {
 }
 
 onMounted(() => {
-  // Check system theme on startup
-  checkSystemTheme()
-  
+  // Apply initial theme
+  applyTheme(currentTheme.value)
+
   // Add system theme change listener
   if (window.matchMedia) {
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', checkSystemTheme)
@@ -309,13 +342,15 @@ onMounted(() => {
 
   EventsOn("task_complete", () => {
     addLog("所有任务已完成。", "success")
-    // Clear file list after task completion
-    setTimeout(() => {
-      files.value = []
-      progress.value = { current: 0, total: 0 }
-    }, 1500) // Delay 1.5s to allow user to see the completion status
+    // Update progress to completed state
+    progress.value = { current: progress.value.total, total: progress.value.total }
+    // Optionally clear file list after task completion - commented out for user visibility
+    // setTimeout(() => {
+    //   files.value = []
+    //   progress.value = { current: 0, total: 0 }
+    // }, 1500) // Delay 1.5s to allow user to see the completion status
   })
-    
+
   EventsOn("task_progress", (data) => {
       if (data && typeof data.current === 'number') {
           progress.value = {
@@ -348,7 +383,7 @@ onUnmounted(() => {
     window.removeEventListener('dragleave', handleDragLeave)
     window.removeEventListener('dragover', handleDragOver)
     window.removeEventListener('drop', handleDrop)
-    
+
     // Remove system theme change listener
     if (window.matchMedia) {
       window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', checkSystemTheme)
@@ -447,6 +482,54 @@ onUnmounted(() => {
   background: transparent;
   color: #495057;
   text-decoration: underline;
+}
+
+.btn-icon-only {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid #ced4da;
+  background: white;
+  cursor: pointer;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.btn-icon-only:hover {
+  background: #f8f9fa;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.btn-icon-only:active {
+  transform: translateY(0);
+}
+
+.top-bar {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.top-bar-right {
+  display: flex;
+  gap: 10px;
+}
+
+:global(.dark-mode) .btn-icon-only {
+  background: #343a40;
+  border-color: #495057;
+  color: #ffffff;
+}
+
+:global(.dark-mode) .btn-icon-only:hover {
+  background: #495057;
+  border-color: #6c757d;
 }
 
 .app-status {
@@ -600,73 +683,6 @@ onUnmounted(() => {
   min-height: 400px;
 }
 
-/* Dark Mode Styles */
-:global(.dark-mode) .status-progress-card {
-  background-color: #2d2d2d;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-}
-
-:global(.dark-mode) .output-control {
-  color: #ffffff;
-}
-
-:global(.dark-mode) .output-control .app-status {
-  color: #cccccc;
-}
-
-:global(.dark-mode) .progress-section {
-  border-top-color: #444;
-}
-
-:global(.dark-mode) .output-control .path {
-  background: #333;
-  color: #ffffff;
-}
-
-:global(.dark-mode) .btn-sm {
-  border-color: #444;
-  background: #333;
-  color: #ffffff;
-}
-
-:global(.dark-mode) .btn-sm:hover {
-  background: #444;
-  border-color: #555;
-}
-
-:global(.dark-mode) .btn-text {
-  color: #cccccc;
-}
-
-:global(.dark-mode) .btn-text:hover {
-  color: #ffffff;
-}
-
-:global(.dark-mode) .modal-content {
-  background: #2d2d2d;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-}
-
-:global(.dark-mode) .modal-header {
-  border-bottom-color: #444;
-}
-
-:global(.dark-mode) .modal-header h3 {
-  color: #ffffff;
-}
-
-:global(.dark-mode) .btn-close {
-  border-color: #444;
-  background: #333;
-  color: #ffffff;
-}
-
-:global(.dark-mode) .btn-close:hover {
-  background: #444;
-  border-color: #555;
-}
-
-:global(.dark-mode) .status-indicator {
-  background-color: #69db7c;
-}
+/* Dark Mode Styles - 已迁移到CSS变量 */
+/* 这些样式现在通过CSS变量自动应用，无需单独定义 */
 </style>
