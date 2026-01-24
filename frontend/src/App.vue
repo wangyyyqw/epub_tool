@@ -181,22 +181,6 @@ const runTask = async (taskName) => {
     return
   }
 
-  // Intercept TXT to EPUB for preview
-  if (taskName === 'txt_to_epub') {
-    // Robust default rules matching user's likely content
-    const rules = [
-      { pattern: '^\\s*第[一二三四五六七八九十零〇百千两0-9]+[卷].*', level: 1 },
-      { pattern: '^\\s*第[一二三四五六七八九十零〇百千两0-9]+[章].*', level: 2 },
-      { pattern: '^\\s*第[一二三四五六七八九十零〇百千两0-9]+节.*', level: 3 },
-      { pattern: '^\\s*Chapter\\s+[0-9]+.*', level: 2 },
-      { pattern: '^\\s*[0-9]+\\..*', level: 2 }
-    ]
-    
-    // Execute task directly with rules
-    const extra = { rules: rules }
-    await startTaskExecution(taskName, extra)
-    return
-  }
 
   await startTaskExecution(taskName, {})
 }

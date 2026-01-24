@@ -99,8 +99,8 @@ func (a *App) SelectFiles() []string {
 		Title: "选择文件",
 		Filters: []wailsRuntime.FileFilter{
 			{
-				DisplayName: "EPUB/TXT Files",
-				Pattern:     "*.epub;*.EPUB;*.txt;*.TXT",
+				DisplayName: "EPUB Files",
+				Pattern:     "*.epub;*.EPUB",
 			},
 		},
 	})
